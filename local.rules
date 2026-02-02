@@ -1,0 +1,50 @@
+# $Id: local.rules,v 1.11 2004/07/23 20:15:44 bmc Exp $
+# ----------------
+# LOCAL RULES
+# ----------------
+# This file intentionally does not come with signatures.  Put your local
+# additions here.
+
+
+#1ping
+alert icmp any any -> $HOME_NET any (msg:"Ping is detected"; sid:1000001; rev:1;)
+
+#2HTTP Traffic
+alert tcp any any -> $HOME_NET [80,8080] (msg:"HTTP Traffic detected"; sid:1000002; rev:1;)
+
+#3DNS Query
+#alert udp any any -> any 53 (msg:"DNS Query Detected"; sid:1000003; rev:1;)
+
+#4ssh brute force detection
+alert tcp any any -> any 22 (msg:"SSH Brute Force Attempt"; flow:to_server,established; detection_filter:track by_src,count 5,seconds 60; sid:1000004; rev:1;)
+
+#5telnet
+alert tcp any any -> any 23 (msg:"TELNET Attempt Detected"; sid:1000005; rev:1;)
+
+#6Block FTP Traffic
+drop tcp any any -> $HOME_NET 21 (msg:"FTP Traffic Blocked"; sid:1000006; rev:1;)
+
+#7Reject smtp taffic
+reject tcp any any -> $HOME_NET 25 (msg:"SMTP Traffic Rejected"; sid:1000007; rev:1;)
+
+#8Block traffic to port 9999
+block tcp any any -> $HOME_NET 9999 (msg:"Blocking traffic to port 9999"; sid:1000008; rev:1;)
+
+#9detect port scanning
+#alert tcp any any -> $HOME_NET any (msg:"Stealth Scan Detected"; flags:S; threshold:type both, track by_src, count 10, seconds 5; sid:1000009; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Stealth Scan Detected"; flags:S; detection_filter:track by_src, count 10, seconds 5; sid:1000009; rev:1;)
+
+#10HTTP SQL Injection - Union Based
+#alert tcp any any -> $HOME_NET 80 (msg:"HTTP SQL Injection Detected"; content:"UNION SELECT"; http_uri; nocase; sid:1000010; rev:1;)
+alert http any any -> $HOME_NET any (msg:"SQLi Detected"; http_uri; content:"UNION", nocase; content:"SELECT", nocase; sid:1000010; rev:7;)
+
+#11XSS attack detection
+#alert tcp any any -> $HOME_NET 80 (msg:"XSS Detected"; content:"<script>"; http_client_body; nocase; sid:1000011; rev:1;)
+alert http any any -> $HOME_NET any (msg:"XSS Detected"; http_uri; content:"<script>"; sid:1000011; rev:11;)
+
+#12Reverse Shell Attempt
+#alert http any any -> $HOME_NET any (msg:"Reverse Shell Attempt Detected"; content:"/bin/bash"; http_uri; sid:1000012; rev:1;)
+alert http any any -> $HOME_NET any (msg:"Reverse Shell Attempt Detected"; http_raw_request; content:"/bin/bash"; sid:100012; rev:3;)
+
+
+
